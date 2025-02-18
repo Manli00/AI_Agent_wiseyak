@@ -1,0 +1,195 @@
+import React, { useState, useRef, useEffect } from 'react';
+import Navbar from './Navbar';
+import { FaYoutube, FaDownload, FaClock } from 'react-icons/fa';
+
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
+interface Timestamp {
+  id: number;
+  startTime: number;
+  endTime: number;
+  text: string;
+}
+
+const Transcript: React.FC = () => {
+  const [videoUrl, setVideoUrl] = useState('');
+  const [displayUrl, setDisplayUrl] = useState('');
+  const [error, setError] = useState('');
+  const [timestamps, setTimestamps] = useState<Timestamp[]>([]);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const playerRef = useRef<any>(null);
+  const timeTrackingIntervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+      window.onYouTubeIframeAPIReady = () => {
+        if (displayUrl) {
+          const videoId = getYouTubeId(displayUrl);
+          if (videoId) initializePlayer(videoId);
+        }
+      };
+    } else if (displayUrl) {
+      const videoId = getYouTubeId(displayUrl);
+      if (videoId) initializePlayer(videoId);
+    }
+
+    return () => {
+      if (timeTrackingIntervalRef.current) {
+        clearInterval(timeTrackingIntervalRef.current);
+      }
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+    };
+  }, [displayUrl]);
+
+  useEffect(() => {
+    // Update active index based on current time
+    const currentIndex = timestamps.findIndex(
+      t => currentTime >= t.startTime && currentTime <= t.endTime
+    );
+    setActiveIndex(currentIndex !== -1 ? currentIndex : null);
+  }, [currentTime, timestamps]);
+
+  const getYouTubeId = (url: string): string | null => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[2].length === 11 ? match[2] : null;
+  };
+
+  const initializePlayer = (videoId: string) => {
+    if (playerRef.current) {
+      playerRef.current.destroy();
+    }
+    
+    playerRef.current = new window.YT.Player('youtube-player', {
+      videoId,
+      events: {
+        onStateChange: onPlayerStateChange,
+        onError: () => {
+          setError('Error loading video. Please check the URL and try again.');
+        }
+      }
+    });
+  };
+
+  const onPlayerStateChange = (event: any) => {
+    if (event.data === window.YT.PlayerState.PLAYING) {
+      startTimeTracking();
+    } else if (event.data === window.YT.PlayerState.PAUSED || 
+               event.data === window.YT.PlayerState.ENDED) {
+      stopTimeTracking();
+    }
+  };
+
+  const startTimeTracking = () => {
+    if (timeTrackingIntervalRef.current) {
+      clearInterval(timeTrackingIntervalRef.current);
+    }
+    
+    timeTrackingIntervalRef.current = window.setInterval(() => {
+      if (playerRef.current?.getCurrentTime) {
+        setCurrentTime(playerRef.current.getCurrentTime());
+      }
+    }, 100);
+  };
+
+  const stopTimeTracking = () => {
+    if (timeTrackingIntervalRef.current) {
+      clearInterval(timeTrackingIntervalRef.current);
+    }
+  };
+
+  const handleUrlSubmit = () => {
+    if (!videoUrl.trim()) {
+      setError('Please enter a YouTube URL');
+      return;
+    }
+
+    const youtubeId = getYouTubeId(videoUrl);
+    if (youtubeId) {
+      setDisplayUrl(`https://www.youtube.com/embed/${youtubeId}`);
+      setError('');
+      setTimestamps([
+        { id: 1, startTime: 0.5, endTime: 2.0, text: "In the beginning" },
+        { id: 2, startTime: 2.3, endTime: 3.5, text: "A whisper in the wind" },
+        { id: 3, startTime: 4.4, endTime: 4.9, text: "Just like" },
+        { id: 4, startTime: 5.5, endTime: 7.0, text: "The stars align" },
+      ]);
+    } else {
+      setError('Invalid YouTube URL');
+    }
+  };
+
+  const jumpToTimestamp = (startTime: number) => {
+    if (playerRef.current?.seekTo) {
+      playerRef.current.seekTo(startTime);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-900">
+      <Navbar />
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="mb-6 flex gap-4">
+          <input
+            type="text"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            className="flex-1 p-2 bg-gray-800 text-white border border-gray-700 rounded-md"
+            placeholder="Paste YouTube URL here..."
+          />
+          <button 
+            onClick={handleUrlSubmit}
+            className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Load Video
+          </button>
+        </div>
+
+        {error && <div className="text-red-500 mb-4">{error}</div>}
+
+        {displayUrl && (
+          <div className="relative bg-gray-800 rounded-lg overflow-hidden">
+            <div id="youtube-player" className="w-full h-[400px]"></div>
+
+            {/* Caption Overlay */}
+            {activeIndex !== null && (
+              <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg text-lg">
+                {timestamps[activeIndex].text}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="mt-6 bg-gray-900 p-4">
+          <h3 className="text-xl font-bold text-white mb-3">Transcript</h3>
+          {timestamps.map((t, index) => (
+            <div
+              key={t.id}
+              onClick={() => jumpToTimestamp(t.startTime)}
+              className={`p-3 border-b border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors ${
+                activeIndex === index ? 'bg-gray-700' : ''
+              }`}
+            >
+              <strong>{t.text}</strong> ({t.startTime}s - {t.endTime}s)
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Transcript;

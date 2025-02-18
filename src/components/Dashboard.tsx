@@ -1,33 +1,26 @@
 import React from 'react';
 import Navbar from './Navbar';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaYoutube, 
-  FaFileAlt, 
-  FaLanguage, 
-  FaMicrophone, 
-  FaClosedCaptioning, 
-  FaFileExport, 
-  FaFileImport, 
-  FaClock,
-} from "react-icons/fa";
+
 
 interface ServiceCardProps {
-  icon: React.ComponentType<{ size: number }>;
+  imagesrc : string;
   title: string;
   subtitle: string;
   description: string;
   path: string;
+
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ icon: Icon, title, subtitle, description, path }) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({ imagesrc, title, subtitle, description, path }) => {
   const navigate = useNavigate();
   
   return (
     <div className="bg-white max-w-70 my-5 rounded-xl shadow-lg p-8 transform transition-all duration-300  hover:shadow-xl border-2 border-transparent hover:border-gray-500">
       <div className="flex flex-col items-center space-y-6">
         <div className="text-[#ff7a59] bg-orange-50 p-6 rounded-full">
-          <Icon size={64} />
+          
+          <img src={imagesrc} alt={title} className='w-16 h-16 object-contain' />
         </div>
         
         <div className="text-center space-y-3">
@@ -47,7 +40,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon: Icon, title, subtitle, 
         
         <button
           onClick={() => navigate(path)}
-          className="w-full px-8 py-3 font-semibold text-white bg-[#ff7a59] rounded-lg transition-all duration-300 hover:bg-orange-600 focus:ring-4 focus:ring-gray-300 focus:outline-none"
+          className="w-full px-8 py-3 font-semibold text-white bg-orange-300 rounded-lg transition-all duration-300 hover:bg-gray-500 focus:ring-4 focus:ring-gray-300 focus:outline-none"
         >
           Launch
         </button>
@@ -58,56 +51,56 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon: Icon, title, subtitle, 
 
 const services: ServiceCardProps[] = [
   {
-    icon: FaYoutube,
+    imagesrc: "src/assets/youtube.png",
     title: "Youtube Transcript",
     subtitle: "Generator",
     description: "Convert YouTube videos to text with ease",
     path: "/youtube-transcript"
   },
   {
-    icon: FaFileAlt,
+    imagesrc: "src/assets/note.png",
     title: "Text Summary",
     subtitle: "Analyzer",
     description: "Generate concise summaries from long texts",
     path: "/text-summary"
   },
   {
-    icon: FaLanguage,
+    imagesrc: "src/assets/translate.png",
     title: "LanguageTranslator",
     subtitle: "Multi-lingual",
     description: "Translate content across 100+ languages",
     path: "/translator"
   },
   {
-    icon: FaMicrophone,
+    imagesrc: "src/assets/voice.png",
     title: "Speech to Text",
     subtitle: "Converter",
     description: "Transform audio into written content",
     path: "/speech-to-text"
   },
   {
-    icon: FaClosedCaptioning,
+    imagesrc: "src/assets/subtitles.png",
     title: "Caption Generator",
     subtitle: "Auto-Caption",
     description: "Create accurate video captions automatically",
     path: "/caption-generator"
   },
   {
-    icon: FaFileExport,
+    imagesrc: "src/assets/convert.png",
     title: "Format Converter",
     subtitle: "Multi-format",
     description: "Convert between various file formats",
     path: "/format-converter"
   },
   {
-    icon: FaFileImport,
+    imagesrc: "src/assets/batch-processing.png",
     title: "Batch Processing",
     subtitle: "Bulk Handler",
     description: "Process multiple files simultaneously",
     path: "/batch-processing"
   },
   {
-    icon: FaClock,
+    imagesrc: "src/assets/timeline.png",
     title: "Timeline Maker",
     subtitle: "Video Timeline",
     description: "Create interactive video timelines",
@@ -139,7 +132,7 @@ const Dashboard: React.FC = () => {
         <div className='mt-10 flex'>
           <button 
           onClick={() => {navigate('/signup')}}
-          className='w-auto px-8 py-[13px] rounded-sm bg-[#ff7a59] text-[18px] text-white font-bold tracking-wide'>
+          className='w-auto px-8 py-[13px] rounded-sm bg-[#ff5c35] text-[18px] text-white font-bold tracking-wide'>
             Sign Up For Free
           </button>
         </div>
