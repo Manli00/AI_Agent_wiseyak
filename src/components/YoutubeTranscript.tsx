@@ -38,6 +38,7 @@ const Transcript: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'textbox' | 'translate'>('translate')
   const [videoLoaded , setvideoLoaded] = useState<boolean>(false);
   const [sidebarOpened, setSidebarOpened] = useState<boolean>(false);
+  const [youtubePlaying , setYoutubePlaying] = useState<boolean>(false);
 
   const languages = {
     en: "English",
@@ -108,9 +109,11 @@ const Transcript: React.FC = () => {
 
   const onPlayerStateChange = (event: any) => {
     if (event.data === window.YT.PlayerState.PLAYING) {
+      setYoutubePlaying(true);
       startTimeTracking();
     } else if (event.data === window.YT.PlayerState.PAUSED || 
                event.data === window.YT.PlayerState.ENDED) {
+      setYoutubePlaying(false);
       stopTimeTracking();
     }
   };
@@ -701,7 +704,7 @@ const Transcript: React.FC = () => {
       </div>
     
     </div>
-    <MediaWaveform />
+    <MediaWaveform youtubeplaying={youtubePlaying}/>
   </div>
 
   );

@@ -1,13 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import WFPlayer from 'wfplayer';
 
-const MediaWaveform = () => {
+const MediaWaveform = ({ youtubeplaying }) => {
   const waveformRef = useRef(null);
-  const mediaRef = useRef(null); 
+  const mediaRef = useRef(null);
 
   useEffect(() => {
-    const mediaElement = mediaRef.current;
     const container = waveformRef.current;
+    const mediaElement = mediaRef.current;
+
+    if (!mediaElement) return;
 
    
     const wf = new WFPlayer({
@@ -18,19 +20,25 @@ const MediaWaveform = () => {
    
     wf.load(mediaElement);
 
+    
+    if (youtubeplaying) {
+      mediaElement.play();  
+    } else {
+      mediaElement.pause(); 
+    }
+
+    
     return () => {
       wf.destroy();
     };
-  }, []);
+  }, [youtubeplaying]);  
 
   return (
     <div>
-    
-      <div id="waveform" ref={waveformRef} style={{ width: '', height: '200px' }}></div>
+      <div id="waveform" ref={waveformRef} style={{ width: '100%', height: '150px' }}></div>
 
-     
+    
       <audio ref={mediaRef} src="/sample.mp3" />
-      {/* <video ref={mediaRef} src="path/to/video.mp4" /> */}
     </div>
   );
 };
