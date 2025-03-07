@@ -6,7 +6,7 @@ import Signup from "./components/Signup";
 import Transcript from "./components/YoutubeTranscript";
 import VideoSection from "./components/Test";
 import AudioWaveform from "./components/Waveform";
-
+import Player from "./components/Player";
 
 function App() {
 
@@ -19,8 +19,8 @@ function App() {
         <Route path="/signup" element={<Signup/>} />
         <Route path="/youtube-transcript"  element={<Transcript />} />
         <Route path="/video" element={<VideoSection/>} />
-        <Route path="/waveform" element={<AudioWaveform/>} />
-       
+        <Route path="/waveform" element={<AudioWaveform youtubeplaying={undefined}/>} />
+        <Route path="/player" element={<Player/>} />
 
 
 
