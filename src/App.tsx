@@ -7,6 +7,7 @@ import Transcript from "./components/YoutubeTranscript";
 import VideoSection from "./components/Test";
 import AudioWaveform from "./components/Waveform";
 
+
 function App() {
 
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="/youtube-transcript"  element={<Transcript />} />
         <Route path="/video" element={<VideoSection/>} />
         <Route path="/waveform" element={<AudioWaveform/>} />
+       
 
 
 

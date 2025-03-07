@@ -4,6 +4,7 @@ import { FaYoutube, FaDownload, FaClock } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import MediaWaveform from './Waveform';
+import Tools from './Tools';
 
 declare global {
   interface Window {
@@ -39,6 +40,23 @@ const Transcript: React.FC = () => {
   const [videoLoaded , setvideoLoaded] = useState<boolean>(false);
   const [sidebarOpened, setSidebarOpened] = useState<boolean>(false);
   const [youtubePlaying , setYoutubePlaying] = useState<boolean>(false);
+  const [CurrentCaption, setCurrentCaption] = useState('');
+
+  
+  const divRefs = useRef([]);
+  const containerRef = useRef(null);
+
+  const [styles, setStyles] = useState({
+    mainColor: "#FFFFFF",
+    mainOutline: "#000000",
+    secondColor: "#FF8800",
+    secondOutline: "#000000",
+    fontSize: 20,
+    spacing: 2,
+    verticalMargin: 10,
+    font: "Source Han Sans CN",
+  
+  })
 
   const languages = {
     en: "English",
@@ -49,6 +67,11 @@ const Transcript: React.FC = () => {
 
   const navigate = useNavigate();
 
+  const updateStyles = (key, value) => {
+    setStyles(
+      (prev) => ({...prev, [key]: value})
+    )
+  }
   useEffect(() => {
     if (!window.YT) {
       const tag = document.createElement('script');
@@ -82,8 +105,14 @@ const Transcript: React.FC = () => {
     const currentIndex = timestamps.findIndex(
       t => currentTime >= t.startTime && currentTime <= t.endTime
     );
+
+    const caption = timestamps.find(
+      t => currentTime >= t.startTime && currentTime <= t.endTime)
+
+    setCurrentCaption(caption);
     setActiveIndex(currentIndex !== -1 ? currentIndex : null);
   }, [currentTime, timestamps]);
+  
 
   const getYouTubeId = (url: string): string | null => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -146,7 +175,7 @@ const Transcript: React.FC = () => {
     if (youtubeId) {
       setDisplayUrl(`https://www.youtube.com/embed/${youtubeId}`);
       setError('');
-      // Your existing timestamps data remains the same
+     
       setTimestamps(
         [
           {
@@ -406,6 +435,16 @@ const Transcript: React.FC = () => {
     }
     };
 
+    
+  useEffect(() => {
+    if (activeIndex !== null && divRefs.current[activeIndex]) {
+      divRefs.current[activeIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+      });
+    }
+  }, [activeIndex]);
+
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -449,7 +488,7 @@ const Transcript: React.FC = () => {
       <div className="relative h-[calc(100vh - 75px)]">
         <div
           className={`
-            fixed top-[75px] left-0 h-full bg-gray-800 text-white
+            absolute  left-0 h-full bg-gray-800 text-white
             transition-all duration-300 ease-in-out
             ${sidebarOpened ? 'w-50' : 'w-8'}
           `}
@@ -510,8 +549,26 @@ const Transcript: React.FC = () => {
 
         {displayUrl && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 bg-gray-800 rounded-lg overflow-hidden">
-            <div className="p-4">
-              <div id="youtube-player" className="w-full h-[70%] aspect-video"></div>
+            <div className="p-4 relative">
+              <div id="youtube-player" className="w-full h-[60%] aspect-video">
+                
+              </div>
+              
+              {CurrentCaption && (
+                <div className="absolute top-[45%] left-[38%] text-white text-lg px-4 py-2 rounded">
+                  <p className='font-bold text-[20px]'
+                  style={{fontSize: `${styles.fontSize}px`, 
+                  marginTop: `${styles.verticalMargin}px`,
+                  letterSpacing: `${styles.spacing}px`,
+                  color: styles.mainColor,}}>
+                  {CurrentCaption.text1}</p>
+                  {/* <p className="text-sm text-gray-300">{CurrentCaption.text2}</p> */}
+                </div>
+              )}
+              
+              <div className='mt-2'>
+                <Tools styles={styles} updateStyles={updateStyles}/>
+              </div>
             </div>
   
             <div className="bg-gray-900 p-4">
@@ -520,7 +577,7 @@ const Transcript: React.FC = () => {
             <div>
               <button
               onClick={() => setActiveTab('translate')}
-              className={`px-4 py-2 rounded-l-lg 
+              className={`px-4 py-2 rounded-lg 
                 ${activeTab === 'translate' ? 'bg-gray-600 text-white' : 'bg-gray-800 text-white'}
 
               `}
@@ -528,15 +585,6 @@ const Transcript: React.FC = () => {
                 Transcript
               </button>
 
-              <button
-              onClick={() => setActiveTab('textbox')}
-              className={`px-4 py-2 rounded-r-lg 
-                ${activeTab === 'textbox' ? 'bg-gray-600 text-white' : 'bg-gray-800 text-white'}
-
-              `}
-              >
-                Description
-              </button>
             </div>
 
             <div className='flex gap-6'>
@@ -578,10 +626,12 @@ const Transcript: React.FC = () => {
           </div>
 
           {activeTab === 'translate' && ( 
-            <div className="h-[calc(100vh-300px)] overflow-y-auto">
+            <div className="h-[calc(100vh-100px)] overflow-y-auto" ref={containerRef}>
               {timestamps.map((t, index) => (
               <div
                 key={t.id}
+                id={`t-${index}`}
+                ref={(el) => (divRefs.current[index] = el)}
                 className={`flex items-start  border-b border-gray-700 transition-colors ${
                   activeIndex === index ? 'bg-gray-700' : ''
                 }`}
@@ -692,11 +742,6 @@ const Transcript: React.FC = () => {
             ))}
           </div>
           )}
-          {activeTab === 'textbox' && (
-            <div className="h-[calc(100vh-300px)] overflow-y-auto">
-              <span className='text-white'>text box here</span>
-            </div>
-          )}
         </div>
       </div>
       
@@ -704,7 +749,7 @@ const Transcript: React.FC = () => {
       </div>
     
     </div>
-    <MediaWaveform youtubeplaying={youtubePlaying}/>
+    {/* <MediaWaveform youtubeplaying={youtubePlaying}/> */}
   </div>
 
   );
